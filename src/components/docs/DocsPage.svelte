@@ -4,6 +4,7 @@
   import type { CommandDoc, GuideDoc } from '../../docs/types.js';
   import { locale } from '../../i18n/index.js';
   import { loadCommandOverrides, loadGuideOverrides, mergeCommandDoc, mergeGuide } from '../../i18n/content/docs.js';
+  import { renderGuideContent, renderInline } from '../../docs/render.js';
   import Navbar from '../shared/Navbar.svelte';
 
   interface Props {
@@ -40,6 +41,7 @@
   const guideCategories = [
     { label: 'Fundamentals', category: 'fundamentals' as const },
     { label: 'Branching', category: 'branching' as const },
+    { label: 'Collaboration', category: 'collaboration' as const },
     { label: 'Advanced', category: 'advanced' as const },
   ];
 
@@ -89,56 +91,8 @@
     setTimeout(() => { btn.textContent = original; }, 1200);
   }
 
-  // Simple markdown-like renderer for guide content
-  function renderGuideContent(content: string): { type: string; text: string }[] {
-    const lines = content.split('\n');
-    const result: { type: string; text: string }[] = [];
-    let inCodeBlock = false;
-    let codeLines: string[] = [];
-
-    for (const line of lines) {
-      if (line.startsWith('```')) {
-        if (inCodeBlock) {
-          result.push({ type: 'code-block', text: codeLines.join('\n') });
-          codeLines = [];
-          inCodeBlock = false;
-        } else {
-          inCodeBlock = true;
-        }
-        continue;
-      }
-
-      if (inCodeBlock) {
-        codeLines.push(line);
-        continue;
-      }
-
-      if (line.startsWith('### ')) {
-        result.push({ type: 'h4', text: line.slice(4) });
-      } else if (line.startsWith('## ')) {
-        result.push({ type: 'h3', text: line.slice(3) });
-      } else if (line.trim() === '') {
-        result.push({ type: 'blank', text: '' });
-      } else {
-        result.push({ type: 'p', text: line });
-      }
-    }
-
-    return result;
-  }
-
-  // Inline code and bold rendering
-  function renderInline(text: string): string {
-    // escape html
-    let s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    // bold
-    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    // inline code
-    s = s.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
-    return s;
-  }
-
   const guideContent = $derived(guide ? renderGuideContent(guide.content) : []);
+  const advancedContent = $derived(doc?.advanced ? renderGuideContent(doc.advanced) : []);
 </script>
 
 <div class="docs-page">
@@ -320,17 +274,15 @@
             <section class="doc-section">
               <h2 class="section-label">ADVANCED</h2>
               <div class="advanced-block">
-                {#each doc.advanced.split('\n') as line}
-                  {#if line.startsWith('## ')}
-                    <h3 class="advanced-heading">{line.slice(3)}</h3>
-                  {:else if line.startsWith('**') && line.endsWith('**')}
-                    <p class="advanced-bold">{line.slice(2, -2)}</p>
-                  {:else if line.startsWith('```')}
-                    <!-- skip fence lines -->
-                  {:else if line.trim() === ''}
-                    <!-- skip empty -->
+                {#each advancedContent as block}
+                  {#if block.type === 'h3' || block.type === 'h4'}
+                    <h3 class="advanced-heading">{block.text}</h3>
+                  {:else if block.type === 'code-block'}
+                    <pre class="advanced-code">{block.text}</pre>
+                  {:else if block.type === 'blank'}
+                    <div class="advanced-spacer"></div>
                   {:else}
-                    <p class="advanced-text">{line}</p>
+                    <p class="advanced-text">{@html renderInline(block.text)}</p>
                   {/if}
                 {/each}
               </div>
@@ -852,16 +804,12 @@
     font-family: 'Press Start 2P', monospace;
     font-size: 10px;
     color: #29adff;
-    margin: 0 0 12px;
+    margin: 12px 0 12px;
     letter-spacing: 1px;
   }
 
-  .advanced-bold {
-    font-size: 12px;
-    color: #ffa300;
-    font-weight: 700;
-    margin: 12px 0 4px;
-    line-height: 1.5;
+  .advanced-heading:first-child {
+    margin-top: 0;
   }
 
   .advanced-text {
@@ -869,6 +817,23 @@
     color: #c2c3c7;
     margin: 4px 0;
     line-height: 1.7;
+  }
+
+  .advanced-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #00e436;
+    background: #000;
+    padding: 12px 16px;
+    border-radius: 4px;
+    border: 1px solid #2a2a4e;
+    margin: 8px 0;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  .advanced-spacer {
+    height: 6px;
   }
 
   /* See Also (guides) */
