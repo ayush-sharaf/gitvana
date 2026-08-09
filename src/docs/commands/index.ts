@@ -161,7 +161,7 @@ export const commandDocs: Record<string, CommandDoc> = {
     ],
     tip: 'Prefer "git switch" for changing branches. The "checkout <ref> -- <file>" form is powerful for restoring individual files from any point in history without leaving your current branch.',
     related: ['switch', 'branch', 'reset', 'log'],
-    seeAlso: ['refs-and-head', 'the-reflog'],
+    seeAlso: ['refs-and-head', 'the-reflog', 'undoing-changes'],
   },
 
   switch: {
@@ -245,7 +245,7 @@ export const commandDocs: Record<string, CommandDoc> = {
     ],
     tip: 'If you accidentally "git reset --hard" and lose work, don\'t panic. "git reflog" shows recent HEAD positions, and you can often recover with "git reset --hard <hash>". The reflog keeps entries for about 90 days.',
     related: ['checkout', 'revert', 'log', 'reflog'],
-    seeAlso: ['the-three-areas', 'rewriting-history'],
+    seeAlso: ['the-three-areas', 'rewriting-history', 'undoing-changes'],
   },
 
   tag: {
@@ -324,7 +324,7 @@ export const commandDocs: Record<string, CommandDoc> = {
     ],
     tip: 'Use "revert" instead of "reset" when the commit has already been pushed to a shared repository. Revert adds history; reset erases it.',
     related: ['reset', 'log', 'cherry-pick', 'commit'],
-    seeAlso: ['rewriting-history'],
+    seeAlso: ['rewriting-history', 'undoing-changes'],
   },
 
   stash: {
@@ -347,7 +347,7 @@ export const commandDocs: Record<string, CommandDoc> = {
     ],
     tip: 'Stash is your "quick save" button. Use it before switching branches when you have work in progress. But don\'t let stashes pile up -- they\'re meant to be temporary.',
     related: ['checkout', 'switch', 'status', 'reset'],
-    seeAlso: ['the-three-areas'],
+    seeAlso: ['the-three-areas', 'undoing-changes'],
   },
 
   reflog: {
@@ -441,6 +441,7 @@ export const commandDocs: Record<string, CommandDoc> = {
     ],
     tip: '"origin" is just a convention -- it\'s the default name for the remote you cloned from. You can name remotes whatever you want and have multiple remotes (e.g., "origin" for your fork and "upstream" for the original repo).',
     related: ['push', 'fetch', 'pull'],
+    seeAlso: ['remotes-and-collaboration'],
   },
 
   push: {
@@ -460,6 +461,7 @@ export const commandDocs: Record<string, CommandDoc> = {
     ],
     tip: 'Never force-push to a shared branch unless you know what you\'re doing. It rewrites remote history and can destroy other people\'s work. If "git push" is rejected, pull first to integrate remote changes.',
     related: ['fetch', 'pull', 'remote'],
+    seeAlso: ['remotes-and-collaboration'],
   },
 
   fetch: {
@@ -478,6 +480,7 @@ export const commandDocs: Record<string, CommandDoc> = {
     ],
     tip: 'Prefer "git fetch" + "git merge" over "git pull" when you want to inspect changes before integrating them. Fetch is always safe; it never changes your local work.',
     related: ['pull', 'push', 'merge', 'remote'],
+    seeAlso: ['remotes-and-collaboration'],
   },
 
   pull: {
@@ -494,5 +497,86 @@ export const commandDocs: Record<string, CommandDoc> = {
     ],
     tip: 'If you want more control, use "git fetch" + "git merge" separately. "git pull" is convenient but can surprise you with merge conflicts if you\'re not expecting diverged history.',
     related: ['fetch', 'push', 'merge', 'remote'],
+    seeAlso: ['remotes-and-collaboration'],
+  },
+
+  config: {
+    name: 'config',
+    syntax: 'git config [--global] <key> <value> | git config --list',
+    description:
+      '"git config" reads and writes the settings that control how git behaves, at three possible scopes: local (this repo only, stored in .git/config -- the default when you give no scope flag), global (this user, stored in ~/.gitconfig, applies to every repo you touch), and system (every user on the machine, rarely touched). A more specific scope always wins -- a local setting overrides a global one. The two settings you\'ll set almost immediately after creating your very first repo are your name and email: git stamps every single commit with whatever "user.name" and "user.email" are configured at the moment you commit.',
+    options: [
+      { flag: '--global', description: 'Apply to every repo for the current user (~/.gitconfig)' },
+      { flag: '--local', description: 'Apply to this repo only (the default when no scope flag is given)' },
+      { flag: '-l, --list', description: 'Show every currently active setting' },
+      { flag: '--unset <key>', description: 'Remove a setting' },
+    ],
+    examples: [
+      { command: 'git config --global user.name "Ada Lovelace"', explanation: 'Set the name attached to every commit you make, on every repo on this machine' },
+      { command: 'git config --global user.email "ada@example.com"', explanation: 'Set the email attached to every commit -- usually the very first git command anyone runs, right after installing it' },
+      { command: 'git config --list', output: 'user.name=Ada Lovelace\nuser.email=ada@example.com\ncore.editor=vim', explanation: 'See every active setting -- handy for confirming what\'s actually in effect before you go digging through config files' },
+      { command: 'git config alias.co checkout', explanation: 'Define a shortcut -- "git co" now behaves exactly like "git checkout"' },
+    ],
+    tip: 'If a teammate ever asks "why do my commits show up under the wrong name," the fix is almost always a missing or stale "git config user.email" -- check it with a bare "git config user.email" before reaching for anything more exotic.',
+    related: ['init', 'commit'],
+  },
+
+  clean: {
+    name: 'clean',
+    syntax: 'git clean -n | git clean -f [-d]',
+    description:
+      '"git clean" deletes untracked files from your working directory -- files git has never seen, not files you\'ve modified or deleted that it already knows about. That distinction is the whole point: "git reset"/"git restore" undo changes to tracked files; "git clean" removes files that were never tracked in the first place (stray build output, scratch notes, editor droppings). Because it only ever touches untracked content, anything it deletes is NOT recoverable through "git reflog" the way commits are -- clean is the one everyday git command that is genuinely, permanently destructive.',
+    options: [
+      { flag: '-n, --dry-run', description: 'List what would be deleted, without deleting anything' },
+      { flag: '-f, --force', description: 'Actually delete the files -- git refuses to run without this' },
+      { flag: '-d', description: 'Also remove untracked directories, not just files' },
+      { flag: '-x', description: 'Also remove files ignored by .gitignore (e.g. build/, dist/)' },
+    ],
+    examples: [
+      { command: 'git clean -n', output: 'Would remove build/\nWould remove scratch.txt', explanation: 'Always run this first -- see exactly what would go before you commit to deleting it' },
+      { command: 'git clean -f', explanation: 'Delete the untracked files the dry run just showed you' },
+      { command: 'git clean -fd', explanation: 'Also remove untracked directories, like an entire stray build/ folder left over from a failed build' },
+      { command: 'git clean -fx', explanation: 'Also wipe ignored files -- the "get me back to a truly fresh checkout" version, useful before a release build' },
+    ],
+    tip: 'This is not reflog-protected -- there is no undo. Make "-n" (or a "git status" glance) a habit before every "clean -f", no exceptions, especially the first few times you use it.',
+    related: ['status', 'reset', 'rm'],
+  },
+
+  mv: {
+    name: 'mv',
+    syntax: 'git mv <source> <destination>',
+    description:
+      '"git mv" renames or moves a tracked file and stages the result in one step -- a convenience wrapper around a plain filesystem move plus "git add" of the new path and "git rm" of the old one. Under the hood git doesn\'t actually store a "rename" as its own kind of operation: it just notices the old blob is gone and an identical blob exists at a new path, and infers the rename afterward by comparing content. Which means "git mv old.ts new.ts" and a plain shell "mv old.ts new.ts" followed by "git add -A" produce the exact same result in the end -- "git mv" only saves you the two extra commands.',
+    options: [
+      { flag: '-f, --force', description: 'Overwrite the destination if it already exists' },
+      { flag: '-n, --dry-run', description: 'Show what would happen without doing it' },
+    ],
+    examples: [
+      { command: 'git mv old-name.ts new-name.ts', explanation: 'Rename a file and stage the rename in one step' },
+      { command: 'git mv utils.ts src/lib/utils.ts', explanation: 'Move a file into a different directory' },
+      { command: 'git status', output: 'Changes to be committed:\n  renamed:    old-name.ts -> new-name.ts', explanation: 'Git recognized it as a rename, not a delete-plus-add -- this is the whole reason "git mv" is worth reaching for' },
+    ],
+    tip: 'You never strictly need this command -- a plain "mv" plus "git add -A" gets detected as a rename anyway, by content similarity. Use "git mv" when you\'d rather stage the rename deliberately in one step than trust the heuristic.',
+    related: ['add', 'rm', 'status'],
+    seeAlso: ['how-git-stores-data'],
+  },
+
+  restore: {
+    name: 'restore',
+    syntax: 'git restore [--staged] <file> | git restore --source <commit> <file>',
+    description:
+      '"git restore" (added in Git 2.23) undoes changes to files, and only to files -- it never touches branches or HEAD. It exists because "git checkout" historically did two unrelated jobs at once (switch branches, AND discard file changes), which has confused nearly everyone who\'s used git long enough. "git restore <file>" discards uncommitted changes in your working directory, replacing the file with the version from HEAD. "git restore --staged <file>" does the opposite end of the pipeline: it un-stages a file without touching your edits, moving it back from the staging area to "modified but not staged."',
+    options: [
+      { flag: '--staged', description: 'Unstage a file (move it out of the index) without discarding its edits' },
+      { flag: '--source <commit>', description: 'Restore from a specific commit instead of HEAD' },
+    ],
+    examples: [
+      { command: 'git restore config.txt', explanation: 'Throw away uncommitted edits to a file, back to how it was at HEAD' },
+      { command: 'git restore --staged config.txt', explanation: 'Un-stage a file you "git add"ed too early -- the edits stay, they\'re just no longer queued for the next commit' },
+      { command: 'git restore --source HEAD~2 report.txt', explanation: 'Pull a file\'s content from two commits ago into your working directory, without touching history' },
+    ],
+    tip: 'Not sure whether you want "restore", "reset", or "checkout" for undoing something? See the Undoing Changes guide -- it\'s a short decision tree, not a history lecture.',
+    related: ['reset', 'checkout', 'status'],
+    seeAlso: ['undoing-changes'],
   },
 };

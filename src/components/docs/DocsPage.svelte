@@ -53,10 +53,10 @@
 
   // Command categories for sidebar
   const categories = [
-    { label: 'Getting Started', commands: ['init', 'status'] },
-    { label: 'Making Changes', commands: ['add', 'commit', 'diff', 'rm'] },
+    { label: 'Getting Started', commands: ['init', 'config', 'status'] },
+    { label: 'Making Changes', commands: ['add', 'commit', 'diff', 'rm', 'mv'] },
     { label: 'Branching', commands: ['branch', 'checkout', 'switch', 'merge'] },
-    { label: 'Undoing Things', commands: ['reset', 'revert'] },
+    { label: 'Undoing Things', commands: ['restore', 'reset', 'revert', 'clean'] },
     { label: 'Viewing History', commands: ['log', 'show', 'blame'] },
     { label: 'Advanced', commands: ['rebase', 'cherry-pick', 'stash', 'tag', 'reflog', 'bisect'] },
   ];
