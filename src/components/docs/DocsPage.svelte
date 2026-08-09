@@ -254,6 +254,9 @@
                     <pre class="code-block">{ex.command}</pre>
                     <button class="copy-btn" onclick={(e) => copyToClipboard(ex.command, e)}>COPY</button>
                   </div>
+                  {#if ex.output}
+                    <pre class="example-output">{ex.output}</pre>
+                  {/if}
                   <p class="example-explanation">{ex.explanation}</p>
                 </div>
               {/each}
@@ -764,6 +767,22 @@
     color: #5f574f;
     margin: 6px 0 0 0;
     padding-left: 4px;
+    line-height: 1.5;
+  }
+
+  /* Sample output -- deliberately muted/plain vs. the bright green command
+     block above it, so "what you typed" and "what you saw" read as
+     visually distinct at a glance. */
+  .example-output {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #8a8a9e;
+    background: #0a0a14;
+    padding: 10px 16px;
+    border-radius: 4px;
+    border: 1px dashed #2a2a4e;
+    margin: 6px 0 0 0;
+    overflow-x: auto;
     line-height: 1.5;
   }
 

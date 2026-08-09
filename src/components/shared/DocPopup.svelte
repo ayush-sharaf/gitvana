@@ -162,6 +162,9 @@
             {#each doc.examples as ex}
               <div class="example-item">
                 <pre class="example-cmd">{ex.command}</pre>
+                {#if ex.output}
+                  <pre class="example-output">{ex.output}</pre>
+                {/if}
                 <span class="example-explanation">{ex.explanation}</span>
               </div>
             {/each}
@@ -394,6 +397,19 @@
     border: 1px solid #2a2a4e;
     margin: 0 0 2px 0;
     overflow-x: auto;
+  }
+
+  .example-output {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #8a8a9e;
+    background: #08080f;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px dashed #2a2a4e;
+    margin: 0 0 2px 0;
+    overflow-x: auto;
+    line-height: 1.4;
   }
 
   .example-explanation {
