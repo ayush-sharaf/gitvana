@@ -668,9 +668,10 @@ export const commandDocs: Record<string, CommandDoc> = {
       { flag: '-n, --dry-run', description: 'Show what would happen without doing it' },
     ],
     examples: [
-      { command: 'git mv old-name.ts new-name.ts', explanation: 'Rename a file and stage the rename in one step' },
-      { command: 'git mv utils.ts src/lib/utils.ts', explanation: 'Move a file into a different directory' },
+      { command: 'git mv old-name.ts new-name.ts', output: 'old-name.ts -> new-name.ts', explanation: 'Rename a file and stage the rename in one step' },
+      { command: 'git mv utils.ts src/lib/utils.ts', output: 'utils.ts -> src/lib/utils.ts', explanation: 'Move a file into a different directory' },
       { command: 'git status', output: 'Changes to be committed:\n  renamed:    old-name.ts -> new-name.ts', explanation: 'Git recognized it as a rename, not a delete-plus-add -- this is the whole reason "git mv" is worth reaching for' },
+      { command: 'git mv README.md docs/README.md', output: 'fatal: destination exists, source=README.md, destination=docs/README.md', explanation: 'Git refuses to silently overwrite an existing file -- move the conflicting file first, or use -f if you really mean it' },
     ],
     tip: 'You never strictly need this command -- a plain "mv" plus "git add -A" gets detected as a rename anyway, by content similarity. Use "git mv" when you\'d rather stage the rename deliberately in one step than trust the heuristic.',
     related: ['add', 'rm', 'status'],
@@ -687,8 +688,9 @@ export const commandDocs: Record<string, CommandDoc> = {
       { flag: '--source <commit>', description: 'Restore from a specific commit instead of HEAD' },
     ],
     examples: [
-      { command: 'git restore config.txt', explanation: 'Throw away uncommitted edits to a file, back to how it was at HEAD' },
+      { command: 'git restore config.txt', explanation: 'Throw away uncommitted edits to a file, back to how it was at HEAD -- silent on success, like most git undo operations' },
       { command: 'git restore --staged config.txt', explanation: 'Un-stage a file you "git add"ed too early -- the edits stay, they\'re just no longer queued for the next commit' },
+      { command: 'git status -s', output: ' M config.txt', explanation: 'Confirm it worked -- the leading space (not "M ") means modified-but-unstaged, exactly what --staged was for' },
       { command: 'git restore --source HEAD~2 report.txt', explanation: 'Pull a file\'s content from two commits ago into your working directory, without touching history' },
     ],
     tip: 'Not sure whether you want "restore", "reset", or "checkout" for undoing something? See the Undoing Changes guide -- it\'s a short decision tree, not a history lecture.',
